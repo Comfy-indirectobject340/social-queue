@@ -1,0 +1,70 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+
+            # Install pnpm via corepack if not available
+            if ! command -v pnpm &> /dev/null; then
+              corepack enable
+              corepack prepare pnpm@latest --activate
+            fi
+
+            # Clone or pull
+            if [ ! -d /opt/social-queue ]; then
+              git clone https://github.com/fberrez/social-queue.git /opt/social-queue
+            else
+              cd /opt/social-queue
+              git fetch origin
+              git reset --hard origin/main
+            fi
+
+            cd /opt/social-queue
+
+            # Write .env from secrets
+            cat > .env << 'ENVEOF'
+            BLUESKY_SERVICE=${{ secrets.BLUESKY_SERVICE }}
+            BLUESKY_IDENTIFIER=${{ secrets.BLUESKY_IDENTIFIER }}
+            BLUESKY_PASSWORD=${{ secrets.BLUESKY_PASSWORD }}
+            MASTODON_URL=${{ secrets.MASTODON_URL }}
+            MASTODON_ACCESS_TOKEN=${{ secrets.MASTODON_ACCESS_TOKEN }}
+            POLL_INTERVAL_MS=60000
+            ENVEOF
+
+            # Remove leading whitespace from heredoc
+            sed -i 's/^[[:space:]]*//' .env
+
+            # Install, build, restart
+            pnpm install --frozen-lockfile
+            pnpm build
+
+            # Install systemd service if not present
+            if [ ! -f /etc/systemd/system/social-queue.service ]; then
+              cp systemd/social-queue.service /etc/systemd/system/
+              # Patch to run as root since we don't have a deploy user
+              sed -i 's/User=deploy/User=root/' /etc/systemd/system/social-queue.service
+              systemctl daemon-reload
+              systemctl enable social-queue
+            else
+              # Update service file if changed
+              cp systemd/social-queue.service /etc/systemd/system/
+              sed -i 's/User=deploy/User=root/' /etc/systemd/system/social-queue.service
+              systemctl daemon-reload
+            fi
+
+            systemctl restart social-queue
+            echo "Deployed successfully. Service status:"
+            systemctl status social-queue --no-pager
