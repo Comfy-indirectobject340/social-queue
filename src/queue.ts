@@ -60,8 +60,10 @@ export async function getPendingPosts(): Promise<Post[]> {
 
 export async function moveToSent(filename: string): Promise<void> {
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const src = path.join(QUEUE_DIR, filename);
   const dest = path.join(SENT_DIR, `${timestamp}_${filename}`);
-  await fs.rename(path.join(QUEUE_DIR, filename), dest);
+  await fs.copyFile(src, dest);
+  await fs.unlink(src);
   console.log(`[queue] moved ${filename} -> sent/`);
 }
 
