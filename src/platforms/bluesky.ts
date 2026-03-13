@@ -1,4 +1,4 @@
-import { AtpAgent, CredentialSession } from "@atproto/api";
+import { AtpAgent, CredentialSession, RichText } from "@atproto/api";
 import type { Config } from "../config.js";
 import type { PublishResult } from "../types.js";
 import { toPlaintext } from "../markdown.js";
@@ -17,7 +17,20 @@ export async function publishToBluesky(
 
   const text = toPlaintext(content);
 
-  const response = await agent.post({ text });
+  if (text.length > 300) {
+    throw new Error(
+      `Post exceeds Bluesky 300-char limit (${text.length} chars)`,
+    );
+  }
+
+  // Detect links, hashtags, and mentions as rich text facets
+  const rt = new RichText({ text });
+  await rt.detectFacets(agent);
+
+  const response = await agent.post({
+    text: rt.text,
+    facets: rt.facets,
+  });
 
   // Build the post URL from the agent's DID and the rkey
   const uri = response.uri; // at://did:plc:xxx/app.bsky.feed.post/rkey
