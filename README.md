@@ -59,10 +59,20 @@ MASTODON_ACCESS_TOKEN=your-access-token
 ```
 
 **LinkedIn** — requires an OAuth 2.0 token with `w_member_social` scope:
+1. Create an app at [LinkedIn Developers](https://www.linkedin.com/developers/)
+2. Enable **Share on LinkedIn** and **Sign In with LinkedIn using OpenID Connect** products
+3. Add `http://localhost:3847/callback` as an authorized redirect URL in the Auth tab
+4. Set `LINKEDIN_CLIENT_ID` and `LINKEDIN_CLIENT_SECRET` in `.env`
+5. Run `pnpm linkedin:auth` to authenticate and get your token
+
 ```
+LINKEDIN_CLIENT_ID=your-client-id
+LINKEDIN_CLIENT_SECRET=your-client-secret
 LINKEDIN_ACCESS_TOKEN=your-oauth-token
 LINKEDIN_PERSON_ID=your-person-id
 ```
+
+LinkedIn tokens expire every 60 days. Run `pnpm linkedin:auth` to re-authenticate — it updates `.env`, GitHub secrets, and triggers a redeploy automatically. A weekly GitHub Actions check will open an issue if the token expires.
 
 ## Usage
 
@@ -76,29 +86,37 @@ pnpm start
 # Build to JS first, then run
 pnpm build
 node dist/index.js
+
+# Re-authenticate LinkedIn (every ~60 days)
+pnpm linkedin:auth
 ```
 
-## Deploy on a VPS
+## Deploy
 
-A systemd unit file is included at `systemd/social-queue.service`.
+Deploys automatically via GitHub Actions on every push to `main`. The workflow SSHs into the VPS, builds a Docker image, and runs the container with `queue/`, `sent/`, and `failed/` mounted as volumes.
 
 ```bash
-# Copy project to your VPS
-scp -r . deploy@your-vps:/opt/social-queue
+# Manual deploy
+gh workflow run deploy.yml
 
-# On the VPS
-cd /opt/social-queue
-pnpm install
-pnpm build
-cp .env.example .env  # edit with real credentials
+# Check container logs on VPS
+ssh your-vps "docker logs social-queue -f"
+```
 
-# Install and start the service
-sudo cp systemd/social-queue.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now social-queue
+### Docker
 
-# Check logs
-sudo journalctl -u social-queue -f
+Run locally with Docker:
+
+```bash
+docker build -t social-queue .
+docker run -d \
+  --name social-queue \
+  --restart unless-stopped \
+  --env-file .env \
+  -v $(pwd)/queue:/app/queue \
+  -v $(pwd)/sent:/app/sent \
+  -v $(pwd)/failed:/app/failed \
+  social-queue
 ```
 
 ## Configuration
@@ -110,6 +128,8 @@ sudo journalctl -u social-queue -f
 | `BLUESKY_PASSWORD` | Per platform | — | Bluesky app password |
 | `MASTODON_URL` | Per platform | — | Mastodon instance URL |
 | `MASTODON_ACCESS_TOKEN` | Per platform | — | Mastodon access token |
+| `LINKEDIN_CLIENT_ID` | Per platform | — | LinkedIn app client ID |
+| `LINKEDIN_CLIENT_SECRET` | Per platform | — | LinkedIn app client secret |
 | `LINKEDIN_ACCESS_TOKEN` | Per platform | — | LinkedIn OAuth token |
 | `LINKEDIN_PERSON_ID` | Per platform | — | LinkedIn person URN ID |
 | `POLL_INTERVAL_MS` | No | `60000` | Queue polling interval in ms |
@@ -118,6 +138,7 @@ sudo journalctl -u social-queue -f
 
 - **Filesystem as state** — `queue/` is pending, `sent/` is done, `failed/` has errors. No database needed.
 - **No HTTP server** — zero attack surface on your VPS.
+- **Docker deploy** — single container, volumes for queue directories, auto-restart on failure.
 - **App password for Bluesky** — simpler than OAuth for a single-user tool.
 - **Raw fetch for LinkedIn** — it's one API call, no SDK needed.
 - **Plaintext for Bluesky and LinkedIn** — both platforms handle their own formatting. Mastodon gets HTML.
