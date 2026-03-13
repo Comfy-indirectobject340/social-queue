@@ -17,12 +17,6 @@ jobs:
           script: |
             set -e
 
-            # Install pnpm via corepack if not available
-            if ! command -v pnpm &> /dev/null; then
-              corepack enable
-              corepack prepare pnpm@latest --activate
-            fi
-
             # Clone or pull
             if [ ! -d /opt/social-queue ]; then
               git clone https://github.com/fberrez/social-queue.git /opt/social-queue
@@ -43,28 +37,23 @@ jobs:
             MASTODON_ACCESS_TOKEN=${{ secrets.MASTODON_ACCESS_TOKEN }}
             POLL_INTERVAL_MS=60000
             ENVEOF
-
-            # Remove leading whitespace from heredoc
             sed -i 's/^[[:space:]]*//' .env
 
-            # Install, build, restart
-            pnpm install --frozen-lockfile
-            pnpm build
+            # Create queue dirs on host (mounted as volumes)
+            mkdir -p /opt/social-queue/queue /opt/social-queue/sent /opt/social-queue/failed
 
-            # Install systemd service if not present
-            if [ ! -f /etc/systemd/system/social-queue.service ]; then
-              cp systemd/social-queue.service /etc/systemd/system/
-              # Patch to run as root since we don't have a deploy user
-              sed -i 's/User=deploy/User=root/' /etc/systemd/system/social-queue.service
-              systemctl daemon-reload
-              systemctl enable social-queue
-            else
-              # Update service file if changed
-              cp systemd/social-queue.service /etc/systemd/system/
-              sed -i 's/User=deploy/User=root/' /etc/systemd/system/social-queue.service
-              systemctl daemon-reload
-            fi
+            # Build and run
+            docker build -t social-queue .
+            docker stop social-queue 2>/dev/null || true
+            docker rm social-queue 2>/dev/null || true
+            docker run -d \
+              --name social-queue \
+              --restart unless-stopped \
+              --env-file .env \
+              -v /opt/social-queue/queue:/app/queue \
+              -v /opt/social-queue/sent:/app/sent \
+              -v /opt/social-queue/failed:/app/failed \
+              social-queue
 
-            systemctl restart social-queue
-            echo "Deployed successfully. Service status:"
-            systemctl status social-queue --no-pager
+            echo "Deployed successfully:"
+            docker ps --filter name=social-queue --format "table {{.Status}}\t{{.Image}}"
