@@ -1,7 +1,7 @@
 import generator from "megalodon";
 import type { Config } from "../config.js";
 import type { PublishResult } from "../types.js";
-import { toHtml } from "../markdown.js";
+import { toPlaintext } from "../markdown.js";
 
 export async function publishToMastodon(
   content: string,
@@ -9,8 +9,8 @@ export async function publishToMastodon(
 ): Promise<PublishResult> {
   const client = generator("mastodon", config.url, config.accessToken);
 
-  const html = toHtml(content);
-  const response = await client.postStatus(html);
+  const text = toPlaintext(content);
+  const response = await client.postStatus(text);
 
   const url = "url" in response.data ? response.data.url : undefined;
 
