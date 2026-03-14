@@ -14,13 +14,13 @@ async function publishToPlatform(
   switch (platform) {
     case "bluesky":
       if (!config.bluesky) throw new Error("Bluesky not configured");
-      return publishToBluesky(post.content, config.bluesky);
+      return publishToBluesky(post.content, config.bluesky, post.images);
     case "mastodon":
       if (!config.mastodon) throw new Error("Mastodon not configured");
-      return publishToMastodon(post.content, config.mastodon);
+      return publishToMastodon(post.content, config.mastodon, post.images);
     case "linkedin":
       if (!config.linkedin) throw new Error("LinkedIn not configured");
-      return publishToLinkedIn(post.content, config.linkedin);
+      return publishToLinkedIn(post.content, config.linkedin, post.images);
   }
 }
 
@@ -35,7 +35,7 @@ export async function publishPost(
 
   if (activePlatforms.length === 0) {
     console.log(`[publisher] ${post.filename}: no configured platforms`);
-    await moveToFailed(post.filename, [
+    await moveToFailed(post, [
       "No configured platforms for: " + post.platforms.join(", "),
     ]);
     return [];
@@ -74,10 +74,10 @@ export async function publishPost(
   }
 
   if (failures.length === 0) {
-    await moveToSent(post.filename);
+    await moveToSent(post);
   } else {
     await moveToFailed(
-      post.filename,
+      post,
       failures.map((r) => `${r.platform}: ${r.error}`),
     );
   }
