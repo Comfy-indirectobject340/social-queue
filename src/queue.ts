@@ -9,6 +9,8 @@ const FAILED_DIR = path.resolve("failed");
 
 const VALID_PLATFORMS: Platform[] = ["bluesky", "mastodon", "linkedin"];
 
+const loggedScheduled = new Set<string>();
+
 function parsePlatforms(raw: unknown): Platform[] {
   if (!Array.isArray(raw)) return [];
   return raw.filter(
@@ -39,9 +41,12 @@ export async function getPendingPosts(): Promise<Post[]> {
     if (data.scheduledAt) {
       scheduledAt = new Date(data.scheduledAt);
       if (scheduledAt > now) {
-        console.log(
-          `[queue] skipping ${filename}: scheduled for ${scheduledAt.toISOString()}`,
-        );
+        if (!loggedScheduled.has(filename)) {
+          console.log(
+            `[queue] scheduled ${filename} for ${scheduledAt.toISOString()}`,
+          );
+          loggedScheduled.add(filename);
+        }
         continue;
       }
     }
@@ -53,6 +58,12 @@ export async function getPendingPosts(): Promise<Post[]> {
       scheduledAt,
       raw,
     });
+  }
+
+  for (const name of loggedScheduled) {
+    if (!mdFiles.includes(name)) {
+      loggedScheduled.delete(name);
+    }
   }
 
   return posts;
