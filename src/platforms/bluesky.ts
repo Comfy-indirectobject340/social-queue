@@ -4,8 +4,6 @@ import type { ImageAttachment, PublishResult } from "../types.js";
 import { toPlaintext } from "../markdown.js";
 import { readImageFile } from "../images.js";
 
-const BLUESKY_IMAGE_MAX_SIZE = 1_000_000; // 1MB
-
 export async function publishToBluesky(
   content: string,
   config: NonNullable<Config["bluesky"]>,
@@ -38,12 +36,6 @@ export async function publishToBluesky(
 
     for (const image of images) {
       const data = await readImageFile(image);
-
-      if (data.byteLength > BLUESKY_IMAGE_MAX_SIZE) {
-        throw new Error(
-          `Image "${image.filename}" exceeds Bluesky 1MB limit (${(data.byteLength / 1_000_000).toFixed(2)}MB)`,
-        );
-      }
 
       const response = await agent.uploadBlob(data, {
         encoding: image.mimeType,

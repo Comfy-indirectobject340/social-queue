@@ -19,7 +19,8 @@
     "dotenv": "^17.3.1",
     "gray-matter": "^4.0.3",
     "megalodon": "^10.2.4",
-    "nodemailer": "^8.0.3"
+    "nodemailer": "^8.0.3",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
