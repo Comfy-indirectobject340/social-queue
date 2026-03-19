@@ -11,7 +11,11 @@ export async function publishToMastodon(
 ): Promise<PublishResult> {
   const client = generator("mastodon", config.url, config.accessToken);
 
-  const text = toPlaintext(content);
+  const text = toPlaintext(content)
+    // Mastodon auto-links full URLs but not bare domains — prepend https://
+    .replace(/(?<![\/\w])([a-zA-Z0-9][-a-zA-Z0-9]*\.[a-zA-Z]{2,}(?:\/\S*)?)/g, (match) =>
+      match.startsWith("http") ? match : `https://${match}`,
+    );
 
   // Upload images if any
   const mediaIds: string[] = [];
